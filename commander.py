@@ -4,8 +4,10 @@ import subprocess
 
 # configurations
 
-num_vehicle = 2
+from layout import FROM_TO_CHART
 
+
+num_vehicle = 2
 
 """ Defining functions """
 
@@ -28,10 +30,10 @@ for i in range(num_vehicle):
     process = subprocess.Popen(["python", "vehicle.py"])
     vehicle_processes.append(process)
 
-
-
 # 模擬派發任務
 tasks = [("start1", "end1"), ("start2", "end2")]
+
+
 
 while True:
     for task in tasks:
