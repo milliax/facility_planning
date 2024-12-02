@@ -51,21 +51,19 @@ def run_commander(running):
     global vehicle_processes
     # create connection
     context = zmq.Context()
-    socket = context.socket(zmq.PUB)
-    socket.bind("tcp://*:5555")
+    publisher = context.socket(zmq.PUB)
+    publisher.bind("tcp://*:5555")
 
-    socket.send_string("BROADCAST COMMANDER initialized")
+    puller = context.socket(zmq.PULL)
+    puller.bind("tcp://*:5556")
+
+    publisher.send_string("BROADCAST COMMANDER initialized")
 
     for i in range(num_vehicle):
         process = subprocess.Popen(
-            ["python", "vehicle.py", str(i)],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            shell=True,
-            text=True,
-        )
+            ["python", "vehicle.py", str(i),"A","Z"],)
         vehicle_processes.append(process)
-        threading.Thread(target=read_output, args=(process,), daemon=True).start()
+        # threading.Thread(target=read_output, args=(process,), daemon=True).start()
 
     # give time for vehicles to connect
     time.sleep(1)
@@ -73,12 +71,17 @@ def run_commander(running):
     # send vehicle information to visualizer
 
     for i in range(num_vehicle):
-        socket.send_string(f"DISPATCH VEHICLE {i} {colors[i]}")
+        publisher.send_string(f"DISPATCH VEHICLE {i} {colors[i]}")
 
     # send start signal to visualizer
 
-    socket.send_string("DISPATCH START")
+    publisher.send_string("DISPATCH START")
 
     # keep alive to handle signals
     while running.is_set():
-        time.sleep(1)
+        response = puller.recv_string()
+        # print(f"Received: {response}")
+        publisher.send_string(response)
+
+    print("Terminating commander...")
+    terminate_processes(vehicle_processes)

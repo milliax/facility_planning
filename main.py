@@ -3,7 +3,7 @@ import time
 import sys
 import signal
 from visualizer import run_visualizer
-from commander import run_commander, terminate_processes, vehicle_processes
+from commander import run_commander
 
 def main():
     running = threading.Event()
@@ -17,7 +17,6 @@ def main():
     def signal_handler(sig, frame):
         print("Exiting...")
         running.clear()
-        terminate_processes(vehicle_processes)
         commander_thread.join()
         sys.exit(0)
 

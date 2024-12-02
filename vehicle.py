@@ -16,21 +16,43 @@ vehicle = {
 
     "current_battery_level": 60*60*4,  # 4 hours of battery capacity started with full charged
 }
+
+status = {
+    "current_position": {
+        "x": 0,
+        "y": 0,
+    },
+    "current_direction": "N",
+}
+
 vehicle_id = sys.argv[1]
 
 # connection setup
 context = zmq.Context()
-socket = context.socket(zmq.SUB)
-socket.connect("tcp://localhost:5555")
-socket.setsockopt_string(zmq.SUBSCRIBE, "DISPATCH")
+subscriber = context.socket(zmq.SUB)
+subscriber.connect("tcp://localhost:5555")
+subscriber.setsockopt_string(zmq.SUBSCRIBE, "DISPATCH")
+subscriber.setsockopt_string(zmq.SUBSCRIBE, "VEHICLE")
+
+pusher = context.socket(zmq.PUSH)
+pusher.connect("tcp://localhost:5556")
+
+# choose the initial position
+responsible_row = {
+    "start": sys.argv[2],
+    "end": sys.argv[3]
+}
+
+initial_position = {
+    "x": 0,
+    "y": 0,
+}
 
 while True:
-    message = socket.recv_string()
-    command, start, end = message.split()
     # 處理任務的執行過程，模擬移動和狀態更新
-    print(f"Vehicle moving from {start} to {end}")
 
-    send_message = f"VEHICLE {vehicle_id} {start} {end}"
-    socket.send_string(send_message)
+    send_message = f"VEHICLE POSITION {vehicle_id} {status["current_position"]['x']} {status["current_position"]['y']} {status["current_direction"]}"
+    # print(send_message)
+    pusher.send_string(send_message)
 
 
