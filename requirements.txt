@@ -1,0 +1,5 @@
+pygame==2.6.1
+pyzmq==26.2.0
+setuptools==75.1.0
+wheel==0.44.0
+zmq==0.0.0
