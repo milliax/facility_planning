@@ -1,4 +1,5 @@
 import zmq
+import sys
 
 # configuration
 
@@ -15,6 +16,7 @@ vehicle = {
 
     "current_battery_level": 60*60*4,  # 4 hours of battery capacity started with full charged
 }
+vehicle_id = sys.argv[1]
 
 # connection setup
 context = zmq.Context()
@@ -27,3 +29,8 @@ while True:
     command, start, end = message.split()
     # 處理任務的執行過程，模擬移動和狀態更新
     print(f"Vehicle moving from {start} to {end}")
+
+    send_message = f"VEHICLE {vehicle_id} {start} {end}"
+    socket.send_string(send_message)
+
+
