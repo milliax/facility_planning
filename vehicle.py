@@ -44,14 +44,19 @@ responsible_row = {
 }
 
 initial_position = {
-    "x": 0,
-    "y": 0,
+    "x": 20,
+    "y": 20,
 }
+
+status["current_position"]["x"] = initial_position["x"]
+status["current_position"]["y"] = initial_position["y"]
+print(f"Vehicle {vehicle_id} is initialized at {initial_position['x']}, {initial_position['y']}")
 
 while True:
     # 處理任務的執行過程，模擬移動和狀態更新
 
-    send_message = f"VEHICLE POSITION {vehicle_id} {status["current_position"]['x']} {status["current_position"]['y']} {status["current_direction"]}"
+    # send_message = f"VEHICLE POSITION {vehicle_id} {status["current_position"]['x']} {status["current_position"]['y']} {status["current_direction"]}"
+    send_message = f"VEHICLE POSITION {vehicle_id} {status["current_position"]["x"]} {status['current_position']['y']} {status["current_direction"]}"
     # print(send_message)
     pusher.send_string(send_message)
 

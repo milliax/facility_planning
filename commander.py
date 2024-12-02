@@ -14,7 +14,7 @@ vehicle_processes = []
 
 colors = [
     "FFFBEB",
-    "FEF3c7",
+    "FEF3C7",
     "FDE68A",
     "FCD34D",
     "FBBF24",
@@ -38,7 +38,7 @@ def terminate_processes(processes):
 # Signal handler for graceful exit
 def signal_handler(sig, frame):
     print("Terminating processes...")
-    terminate_processes()
+    terminate_processes(vehicle_processes)
     sys.exit(0)
 
 def read_output(process):
@@ -61,7 +61,7 @@ def run_commander(running):
 
     for i in range(num_vehicle):
         process = subprocess.Popen(
-            ["python", "vehicle.py", str(i),"A","Z"],)
+            ["python", "vehicle.py", f"AMR{str(i)}","A","Z"],)
         vehicle_processes.append(process)
         # threading.Thread(target=read_output, args=(process,), daemon=True).start()
 
@@ -71,7 +71,7 @@ def run_commander(running):
     # send vehicle information to visualizer
 
     for i in range(num_vehicle):
-        publisher.send_string(f"DISPATCH VEHICLE {i} {colors[i]}")
+        publisher.send_string(f"DISPATCH VEHICLE AMR{i} {colors[i]}")
 
     # send start signal to visualizer
 

@@ -98,11 +98,16 @@ def run_visualizer():
                 start_time = time.time()
                 continue
             elif message.startswith("DISPATCH VEHICLE"):
+                print(message)
                 _, _, vehicle_id, color = message.split()
-                vehicle_colors.append((int(vehicle_id), color))
+                vehicle_colors.append((vehicle_id, color))
             elif message.startswith("VEHICLE POSITION"):
                 _, _, vehicle_id, x, y, direction = message.split()
-                vehicle_positions[int(vehicle_id)] = (int(x), int(y), direction)
+                vehicle_positions[vehicle_id] = {
+                    "x": int(x),
+                    "y": int(y),
+                    "direction": direction,
+                }
 
         except zmq.Again:
             pass  # No message received
@@ -127,7 +132,7 @@ def run_visualizer():
                 )
 
         # put the row letters on the map according to the layout and the gap
-        
+
         gap_aggregation = -1
         for (tag,g) in zip(ROWS,gap):
             gap_aggregation += g
@@ -139,6 +144,7 @@ def run_visualizer():
             id, color = vehicle
 
             if id not in vehicle_positions:
+                print(f"Vehicle {id} not found in vehicle_positions")
                 continue
 
             vehicle_color_hex = color.lstrip("#")
@@ -151,8 +157,8 @@ def run_visualizer():
                 screen,
                 vehicle_color,
                 (
-                    int(x) * CELL_SIZE + CELL_SIZE // 2,
-                    int(y) * CELL_SIZE + CELL_SIZE // 2,
+                    vehicle_positions[id]["x"] * CELL_SIZE + CELL_SIZE // 2,
+                    vehicle_positions[id]["y"] * CELL_SIZE + CELL_SIZE // 2,
                 ),
                 CELL_SIZE // 2,
             )
