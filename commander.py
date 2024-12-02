@@ -3,6 +3,7 @@ import time
 import subprocess
 import sys
 import signal
+import threading
 
 # configurations
 
@@ -40,9 +41,11 @@ def signal_handler(sig, frame):
     terminate_processes()
     sys.exit(0)
 
+def read_output(process):
+    for line in process.stdout:
+        print(line, end='')
 
 signal.signal(signal.SIGINT, signal_handler)
-
 
 def run_commander(running):
     global vehicle_processes
@@ -51,7 +54,7 @@ def run_commander(running):
     socket = context.socket(zmq.PUB)
     socket.bind("tcp://*:5555")
 
-    print("Commander is running...")
+    socket.send_string("BROADCAST COMMANDER initialized")
 
     for i in range(num_vehicle):
         process = subprocess.Popen(
@@ -62,7 +65,7 @@ def run_commander(running):
             text=True,
         )
         vehicle_processes.append(process)
-        print(f"Vehicle {i} is running...")
+        threading.Thread(target=read_output, args=(process,), daemon=True).start()
 
     # give time for vehicles to connect
     time.sleep(1)
@@ -70,11 +73,11 @@ def run_commander(running):
     # send vehicle information to visualizer
 
     for i in range(num_vehicle):
-        socket.send_string(f"VEHICLE {i} {colors[i]}")
+        socket.send_string(f"DISPATCH VEHICLE {i} {colors[i]}")
 
     # send start signal to visualizer
 
-    socket.send_string("START")
+    socket.send_string("DISPATCH START")
 
     # keep alive to handle signals
     while running.is_set():

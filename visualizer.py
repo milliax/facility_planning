@@ -16,6 +16,7 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GRAY = (128, 128, 128)
 BLUE = (0, 0, 255)
+RED = (255, 0, 0)  # For undefined vehicles
 
 # Set the dimensions of each grid cell
 CELL_SIZE = 10
@@ -25,6 +26,7 @@ map_width = len(layout_map[0])
 map_height = len(layout_map)
 window_width = map_width * CELL_SIZE
 window_height = map_height * CELL_SIZE
+
 vehicles = []
 
 print(f"Map dimensions: {map_width} x {map_height}")
@@ -37,11 +39,13 @@ pygame.display.set_caption("Map Display")
 pygame.font.init()
 font = pygame.font.SysFont('Arial', 15)
 
-# set up the connection
+# Set up the ZeroMQ connection
 context = zmq.Context()
 socket = context.socket(zmq.SUB)
 socket.connect("tcp://localhost:5555")
 socket.setsockopt_string(zmq.SUBSCRIBE, "DISPATCH")
+socket.setsockopt_string(zmq.SUBSCRIBE, "BROADCAST")
+socket.setsockopt_string(zmq.SUBSCRIBE, "VEHICLE")
 
 def render_time(screen,st):
     time_elapsed = time.time() - st
@@ -73,7 +77,6 @@ def run_visualizer():
         # Receive messages from ZeroMQ
         try:
             message = socket.recv_string(flags=zmq.NOBLOCK)
-
             print(message)
             
             if message == "DISPATCH START":
@@ -105,7 +108,13 @@ def run_visualizer():
         for vehicle in vehicles:
             vehicle_id, color = vehicle
             x, y = layout_map[vehicle_id]
-            pygame.draw.rect(screen, int(color, 16), pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+
+            vehicle_color_hex = dict(vehicle).get(id,'#FF0000').lstrip('#')
+            vehicle_color = tuple(int(vehicle_color_hex[i:i+2], 16) for i in (0, 2, 4))
+
+
+            # pygame.draw.rect(screen, int(color, 16), pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+            pygame.draw.circle(screen, vehicle_color, (x * CELL_SIZE + CELL_SIZE // 2, y * CELL_SIZE + CELL_SIZE // 2), CELL_SIZE // 2)
 
         # Render the time
         render_time(screen, start_time)
